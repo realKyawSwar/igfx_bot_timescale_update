@@ -1,0 +1,14 @@
+{
+  "as_of": "2025-11-11T13:51:46.922404Z",
+  "strategy": "sma_ema_crossover",
+  "symbol": "EURUSD",
+  "timeframe": "5min",
+  "metrics": {
+    "final_value": 10680.0,
+    "return_pct": 6.8,
+    "win_rate": 0.54,
+    "sharpe": 1.12,
+    "max_drawdown_pct": 3.9,
+    "trades": 124
+  }
+}

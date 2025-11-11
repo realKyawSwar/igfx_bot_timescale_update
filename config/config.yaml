@@ -1,0 +1,73 @@
+# Global settings
+mode: DEMO   # DEMO or LIVE
+timezone: "Europe/London"
+log_level: "INFO"
+
+ig:
+  api_key_env: "IG_API_KEY"
+  username_env: "IG_USERNAME"
+  password_env: "IG_PASSWORD"
+  account_type_env: "IG_ACCOUNT_TYPE"  # DEMO or LIVE
+  account_id_env: "IG_ACCOUNT_ID"      # optional
+
+instruments:
+  - symbol: "EURUSD"
+    ig_epic: "CS.D.EURUSD.MINI.IP"  # example EPIC for mini deal; verify in your IG account
+    pip_size: 0.0001
+    lot_size: 10000
+    spread_estimate: 0.0002
+    timeframe: "5min"
+  - symbol: "GBPUSD"
+    ig_epic: "CS.D.GBPUSD.MINI.IP"
+    pip_size: 0.0001
+    lot_size: 10000
+    spread_estimate: 0.00025
+    timeframe: "5min"
+  - symbol: "USDJPY"
+    ig_epic: "CS.D.USDJPY.MINI.IP"
+    pip_size: 0.01
+    lot_size: 10000
+    spread_estimate: 0.02
+    timeframe: "5min"
+
+strategy:
+  name: "sma_ema_crossover"   # sma_ema_crossover | rsi_reversal | alligator | fib_elliott
+  params:
+    fast: 50
+    slow: 200
+    rsi_len: 14
+    rsi_ob: 70
+    rsi_os: 30
+    alligator:
+      jaw: 13
+      teeth: 8
+      lips: 5
+      smooth: 5
+    zigzag:
+      pct: 2.0   # percent swing for wave pivots
+    fib:
+      levels: [0.382, 0.5, 0.618]
+      tolerance: 0.0015
+
+risk:
+  risk_per_trade_pct: 1.0
+  rr_ratio: 2.0
+  max_daily_loss_pct: 3.0
+  max_daily_trades: 5
+  slippage_pips: 0.5
+
+scheduler:
+  run_interval_seconds: 60
+  session:
+    start_hour: 7    # London session approx (UTC)
+    end_hour: 20
+
+database:
+  enabled: true
+  # If DSN is provided, it takes precedence. Otherwise host/user/pass/dbname are used.
+  dsn_env: "PG_DSN"
+  host_env: "PGHOST"
+  port_env: "PGPORT"
+  user_env: "PGUSER"
+  password_env: "PGPASSWORD"
+  dbname_env: "PGDATABASE"
