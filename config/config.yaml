@@ -49,7 +49,11 @@ strategy:
       levels: [0.382, 0.5, 0.618]
       tolerance: 0.0015
 
+data:
+  history_points: 400  # Number of candles to request for each evaluation
+
 risk:
+  balance: 10000
   risk_per_trade_pct: 1.0
   rr_ratio: 2.0
   max_daily_loss_pct: 3.0
@@ -71,3 +75,11 @@ database:
   user_env: "PGUSER"
   password_env: "PGPASSWORD"
   dbname_env: "PGDATABASE"
+
+telegram:
+  enabled: false
+  bot_token_env: "TELEGRAM_BOT_TOKEN"
+  chat_id_env: "TELEGRAM_CHAT_ID"
+  require_trade_confirmation: true
+  confirmation_timeout_seconds: 45
+  poll_interval_seconds: 2
