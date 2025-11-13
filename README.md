@@ -47,6 +47,22 @@ with **backtrader**, scheduling, logging, and a **Streamlit** monitoring dashboa
    IG_ACCOUNT_ID=ABC1234  # optional; will auto-select default if omitted
    ```
 
+   To keep separate credentials for demo and live trading you can also provide
+   mode-specific variables. The runner automatically selects the correct set based
+   on `config.mode` or the `--mode` flag:
+
+   ```bash
+   IG_API_KEY_DEMO=demo_key
+   IG_USERNAME_DEMO=demo_user
+   IG_PASSWORD_DEMO=demo_pass
+   IG_ACCOUNT_ID_DEMO=ABC123
+
+   IG_API_KEY_LIVE=live_key
+   IG_USERNAME_LIVE=live_user
+   IG_PASSWORD_LIVE=live_pass
+   IG_ACCOUNT_ID_LIVE=XYZ789
+   ```
+
 3. **Configure instruments and params** in `config/config.yaml`. Example provided for EURUSD/GBPUSD/USDJPY.
 
 4. **Run a backtest** (uses `yfinance` data as a fallback when IG history is unavailable):
@@ -58,6 +74,10 @@ with **backtrader**, scheduling, logging, and a **Streamlit** monitoring dashboa
    ```bash
    python -m src.igfx_bot.runner --config config/config.yaml --mode demo
    ```
+
+   Switch to the live environment by passing `--mode live` (or by setting
+   `mode: LIVE` in the config file). The runner falls back to demo mode when an
+   unknown value is supplied, keeping the behaviour safe by default.
 
 6. **Dashboard**:
    ```bash
@@ -169,3 +189,6 @@ Tables:
 - `trades(id, ts, epic, symbol, side, size, entry, sl, tp, deal_ref, raw)`
 
 The runner writes candles every cycle and appends a row on each submitted order.
+The Streamlit dashboard reads directly from the same `trades` table (when the
+`PG_*` environment variables are present) so new executions appear in the
+"TimescaleDB (live)" source immediately.
