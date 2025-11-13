@@ -1,14 +1,26 @@
 # Global settings
-mode: DEMO   # DEMO or LIVE
+mode: DEMO   # DEMO or LIVE (can be overridden with --mode CLI flag)
 timezone: "Europe/London"
 log_level: "INFO"
 
 ig:
+  # Top-level env names act as defaults if mode-specific overrides are not provided.
   api_key_env: "IG_API_KEY"
   username_env: "IG_USERNAME"
   password_env: "IG_PASSWORD"
-  account_type_env: "IG_ACCOUNT_TYPE"  # DEMO or LIVE
+  account_type_env: "IG_ACCOUNT_TYPE"  # Optional override; defaults to the selected mode
   account_id_env: "IG_ACCOUNT_ID"      # optional
+  credentials:
+    DEMO:
+      api_key_env: "IG_API_KEY_DEMO"
+      username_env: "IG_USERNAME_DEMO"
+      password_env: "IG_PASSWORD_DEMO"
+      account_id_env: "IG_ACCOUNT_ID_DEMO"
+    LIVE:
+      api_key_env: "IG_API_KEY_LIVE"
+      username_env: "IG_USERNAME_LIVE"
+      password_env: "IG_PASSWORD_LIVE"
+      account_id_env: "IG_ACCOUNT_ID_LIVE"
 
 instruments:
   - symbol: "EURUSD"

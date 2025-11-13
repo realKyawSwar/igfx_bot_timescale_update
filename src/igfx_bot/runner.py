@@ -22,6 +22,59 @@ from .strategies.sma_ema_crossover import SMAEMACrossover
 from .utils import env, load_config, now_utc, within_session
 
 
+SUPPORTED_MODES = {"DEMO", "LIVE"}
+
+
+def _normalise_mode(mode: Optional[str]) -> Optional[str]:
+    if mode is None:
+        return None
+    value = str(mode).strip().upper()
+    return value or None
+
+
+def _resolve_mode(cli_mode: Optional[str], cfg_mode: Optional[str]) -> str:
+    for candidate in (_normalise_mode(cli_mode), _normalise_mode(cfg_mode)):
+        if candidate:
+            if candidate in SUPPORTED_MODES:
+                return candidate
+            logger.warning("Unknown trading mode '{}'; falling back to DEMO", candidate)
+    return "DEMO"
+
+
+def _resolve_ig_env_names(ig_cfg: dict, mode: str) -> Dict[str, Optional[str]]:
+    credentials_cfg = ig_cfg.get("credentials", {}) or {}
+
+    mode_cfg: Dict[str, str] = {}
+    for key, value in credentials_cfg.items():
+        if isinstance(key, str) and key.strip().upper() == mode:
+            if isinstance(value, dict):
+                mode_cfg = value
+            break
+
+    def _pick(name: str, fallback: Optional[str] = None) -> Optional[str]:
+        mode_key = f"{name}_env"
+        if mode_key in mode_cfg and mode_cfg[mode_key]:
+            return mode_cfg[mode_key]
+        value = ig_cfg.get(mode_key)
+        if value:
+            return value
+        return fallback
+
+    return {
+        "api_key_env": _pick("api_key"),
+        "username_env": _pick("username"),
+        "password_env": _pick("password"),
+        "account_type_env": _pick("account_type"),
+        "account_id_env": _pick("account_id"),
+    }
+
+
+def _read_env(name: Optional[str], default: Optional[str] = None) -> Optional[str]:
+    if not name:
+        return default
+    return env(name, default)
+
+
 RUNNING = True
 
 
@@ -199,14 +252,23 @@ def job(
         rm.register_trade(0.0)
 
 
-def main(config_path: str, mode: str = "demo"):
+def main(config_path: str, mode: Optional[str] = None):
     cfg = load_config(config_path)
 
-    api_key = env(cfg["ig"]["api_key_env"])
-    username = env(cfg["ig"]["username_env"])
-    password = env(cfg["ig"]["password_env"])
-    account_type = env(cfg["ig"].get("account_type_env", "IG_ACCOUNT_TYPE"), cfg.get("mode", "DEMO"))
-    account_id = env(cfg["ig"].get("account_id_env", ""), None)
+    trading_mode = _resolve_mode(mode, cfg.get("mode"))
+    logger.info("Selected IG trading mode: {}", trading_mode)
+
+    ig_cfg = cfg.get("ig", {})
+    env_names = _resolve_ig_env_names(ig_cfg, trading_mode)
+
+    api_key = _read_env(env_names.get("api_key_env"))
+    username = _read_env(env_names.get("username_env"))
+    password = _read_env(env_names.get("password_env"))
+    account_type = _read_env(env_names.get("account_type_env"), trading_mode)
+    if not account_type:
+        account_type = trading_mode
+    account_type = account_type.upper()
+    account_id = _read_env(env_names.get("account_id_env"))
 
     auth = IGAuth(api_key, username, password, account_type)
     ig = auth.login()
@@ -313,7 +375,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
-    parser.add_argument("--mode", default="demo")
+    parser.add_argument(
+        "--mode",
+        default=None,
+        help="Trading mode to use (DEMO or LIVE). Overrides the `mode` value in the config when provided.",
+    )
     args = parser.parse_args()
     main(args.config, args.mode)
 
